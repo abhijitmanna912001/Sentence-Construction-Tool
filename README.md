@@ -12,7 +12,7 @@ A sentence-building React application built with Vite + TypeScript, Tailwind CSS
 ## Setup
 
 ```bash
-git clone <[your-repo-url](https://github.com/abhijitmanna912001/Sentence-Construction-Tool)>
+git clone https://github.com/abhijitmanna912001/Sentence-Construction-Tool
 cd sentence-construction-tool
 npm install
 npm run dev
