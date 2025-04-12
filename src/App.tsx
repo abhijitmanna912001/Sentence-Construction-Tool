@@ -1,73 +1,104 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
+import { Button } from "./components/ui/button";
 
 type Question = {
   questionId: string;
   question: string;
+  questionType: string;
+  answerType: string;
   options: string[];
   correctAnswer: string[];
 };
 
-const App = () => {
+function App() {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/questions`)
-      .then((res) => res.json())
-      .then((data) => {
-        setQuestions(data);
-      });
+    axios
+      .get("http://localhost:3001/questions")
+      .then((res) => setQuestions(res.data))
+      .catch((err) => console.error("Error fetching questions:", err));
   }, []);
 
-  const handleSelectedWord = (word: string) => {
-    if (!selectedWords.includes(word)) {
+  const handleWordClick = (word: string) => {
+    if (selectedWords.length < 4 && !selectedWords.includes(word)) {
       setSelectedWords([...selectedWords, word]);
     }
   };
 
+  const handleReset = () => {
+    setSelectedWords([]);
+  };
+
+  const getFilledSentence = (sentence: string, selectedWords: string[]) => {
+    let index = 0;
+    const parts = sentence.split("_____________");
+
+    return parts.map((part, i) => (
+      <span key={i}>
+        {part}
+        {i < parts.length - 1 &&
+          (index < selectedWords.length ? (
+            <span className="font-bold text-black">
+              {selectedWords[index++]}
+            </span>
+          ) : (
+            <span className="text-gray-400 underline">_____________</span>
+          ))}
+      </span>
+    ));
+  };
+
+
+
+  if (questions.length === 0) return <p className="p-4">Loading...</p>;
+
+  const question = questions[currentQuestionIndex];
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      {questions.length > 0 ? (
-        <div>
-          <h1 className="text-xl font-semibold mb-4">Complete The Sentence</h1>
-          <div className="mb-4">
-            <p>{questions[0].question}</p>
-            <div className="flex flex-wrap gap-4 mt-4">
-              {questions[0].options.map((option, index) => (
-                <button
-                  onClick={() => handleSelectedWord(option)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                  key={index}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Your Sentence: </h2>
-            <p className="italic">
-              {(() => {
-                const parts = questions[0].question.split("__________");
-                return parts.map((part, index) => (
-                  <span key={index}>
-                    {part}
-                    {index < selectedWords.length && (
-                      <span className="inline-block border-b-2 border-gray-400 font-bold mx-1">
-                        {selectedWords[index]}
-                      </span>
-                    )}
-                  </span>
-                ));
-              })()}
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+      <div className="max-w-3xl w-full">
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          Complete The Sentence
+        </h1>
+        <div className="text-lg leading-relaxed mb-6 bg-gray-50 p-4 rounded shadow border border-gray-200">
+          {question.question}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          {question.options.map((word) => (
+            <Button
+              key={word}
+              variant="outline"
+              onClick={() => handleWordClick(word)}
+              disabled={selectedWords.includes(word)}
+              className="text-black"
+            >
+              {word}
+            </Button>
+          ))}
+        </div>
+
+        {selectedWords.length > 0 && (
+          <div className="text-center mb-4">
+            <p className="font-medium mb-1 text-gray-600">Your Sentence:</p>
+            <p className="text-lg font-bold text-black leading-relaxed">
+              {getFilledSentence(question.question, selectedWords)}
             </p>
           </div>
+        )}
+
+        <div className="flex justify-center">
+          <Button onClick={handleReset} variant="default">
+            Reset Sentence
+          </Button>
         </div>
-      ) : (
-        <p>Loading...</p>
-      )}
+      </div>
     </div>
   );
-};
+}
 
 export default App;
