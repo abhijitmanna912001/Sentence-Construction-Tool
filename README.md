@@ -15,4 +15,5 @@ A sentence-building React application built with Vite + TypeScript, Tailwind CSS
 git clone https://github.com/abhijitmanna912001/Sentence-Construction-Tool
 cd sentence-construction-tool
 npm install
+npm run json-server
 npm run dev

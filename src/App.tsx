@@ -100,7 +100,7 @@ function App() {
         {part}
         {index < correctWords.length && (
           <span className="font-bold text-black underline">
-            {correctWords[index++]} {/* Correct words underlined */}
+            {correctWords[index++]}
           </span>
         )}
       </span>
@@ -114,7 +114,7 @@ function App() {
         {part}
         {index < userWords.length && (
           <span className="font-bold text-black underline">
-            {userWords[index++]} {/* User words underlined */}
+            {userWords[index++]}
           </span>
         )}
       </span>
@@ -143,7 +143,6 @@ function App() {
                       answer.question,
                       answer.correctAnswer
                     )}{" "}
-                    {/* Correct answer filled in */}
                   </p>
 
                   <p className="text-sm text-gray-600">Your Response:</p>
@@ -153,7 +152,6 @@ function App() {
                     }`}
                   >
                     {getUserFilledSentence(answer.question, answer.userAnswer)}{" "}
-                    {/* User response filled in */}
                   </p>
                 </div>
               </CardContent>
