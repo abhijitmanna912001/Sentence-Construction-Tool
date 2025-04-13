@@ -19,9 +19,11 @@ type Question = {
 
 type Answer = {
   question: string;
-  userAnswer: string;
+  userAnswer: string[];
+  correctAnswer: string[];
   isCorrect: boolean;
 };
+
 
 function App() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -67,11 +69,12 @@ function App() {
 
     if (isCorrect) setScore((prev) => prev + 1);
 
-    setAnswers((prevAnswers) => [
-      ...prevAnswers,
+    setAnswers([
+      ...answers,
       {
         question: currentQuestion.question,
-        userAnswer: selectedWords.join(" "),
+        userAnswer: selectedWords,
+        correctAnswer: currentQuestion.correctAnswer,
         isCorrect,
       },
     ]);
@@ -87,6 +90,37 @@ function App() {
 
   const question = questions[currentQuestionIndex];
 
+  const getCorrectFilledSentence = (
+    sentence: string,
+    correctWords: string[]
+  ) => {
+    let index = 0;
+    return sentence.split("_____________").map((part, i) => (
+      <span key={i}>
+        {part}
+        {index < correctWords.length && (
+          <span className="font-bold text-black underline">
+            {correctWords[index++]} {/* Correct words underlined */}
+          </span>
+        )}
+      </span>
+    ));
+  };
+
+  const getUserFilledSentence = (sentence: string, userWords: string[]) => {
+    let index = 0;
+    return sentence.split("_____________").map((part, i) => (
+      <span key={i}>
+        {part}
+        {index < userWords.length && (
+          <span className="font-bold text-black underline">
+            {userWords[index++]} {/* User words underlined */}
+          </span>
+        )}
+      </span>
+    ));
+  };
+
   if (questions.length === 0) return <p className="p-4">Loading...</p>;
 
   if (showResults) {
@@ -96,22 +130,32 @@ function App() {
         <div className="w-full max-w-4xl space-y-4">
           {answers.map((answer, index) => (
             <Card key={index} className="rounded-xl border shadow-md bg-white">
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Question {index + 1}
-                </h3>
+              <CardHeader className="flex justify-between items-center">
+                <span className="ml-auto text-sm font-medium text-gray-500">
+                  {index + 1} / {questions.length}
+                </span>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm text-gray-600">Prompt:</p>
-                <p className="font-medium text-gray-900">{answer.question}</p>
-                <p className="text-sm text-gray-600">Your Response:</p>
-                <p
-                  className={`font-medium ${
-                    answer.isCorrect ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {answer.userAnswer}
-                </p>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Prompt:</p>
+                  <p className="font-medium text-gray-900">
+                    {getCorrectFilledSentence(
+                      answer.question,
+                      answer.correctAnswer
+                    )}{" "}
+                    {/* Correct answer filled in */}
+                  </p>
+
+                  <p className="text-sm text-gray-600">Your Response:</p>
+                  <p
+                    className={`font-medium ${
+                      answer.isCorrect ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {getUserFilledSentence(answer.question, answer.userAnswer)}{" "}
+                    {/* User response filled in */}
+                  </p>
+                </div>
               </CardContent>
               <CardFooter>
                 <p className="text-sm font-semibold">
