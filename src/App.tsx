@@ -1,6 +1,12 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from "./components/ui/card";
 
 type Question = {
   questionId: string;
@@ -21,8 +27,9 @@ function App() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
-  const [answers, setAnswers] = useState<Answer[]>([]); // Store answers
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     axios
@@ -56,13 +63,12 @@ function App() {
   const handleNext = () => {
     const currentQuestion = questions[currentQuestionIndex];
     const correctAnswer = currentQuestion.correctAnswer;
-
     const isCorrect = selectedWords.join(" ") === correctAnswer.join(" ");
 
     if (isCorrect) setScore((prev) => prev + 1);
 
-    setAnswers([
-      ...answers,
+    setAnswers((prevAnswers) => [
+      ...prevAnswers,
       {
         question: currentQuestion.question,
         userAnswer: selectedWords.join(" "),
@@ -71,18 +77,56 @@ function App() {
     ]);
 
     setSelectedWords([]);
-    setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-  };
 
-  const handleFinish = () => {
-    alert(`Your score: ${score} out of ${questions.length}`);
+    if (currentQuestionIndex === questions.length - 1) {
+      setShowResults(true);
+    } else {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+    }
   };
 
   const question = questions[currentQuestionIndex];
 
   if (questions.length === 0) return <p className="p-4">Loading...</p>;
-  if (currentQuestionIndex >= questions.length)
-    return <div>All questions completed! Check your results below.</div>;
+
+  if (showResults) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <h2 className="text-2xl font-bold mb-6 text-center">Your Results</h2>
+        <div className="w-full max-w-4xl space-y-4">
+          {answers.map((answer, index) => (
+            <Card key={index} className="rounded-xl border shadow-md bg-white">
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Question {index + 1}
+                </h3>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-gray-600">Prompt:</p>
+                <p className="font-medium text-gray-900">{answer.question}</p>
+                <p className="text-sm text-gray-600">Your Response:</p>
+                <p
+                  className={`font-medium ${
+                    answer.isCorrect ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {answer.userAnswer}
+                </p>
+              </CardContent>
+              <CardFooter>
+                <p className="text-sm font-semibold">
+                  {answer.isCorrect ? "✅ Correct" : "❌ Incorrect"}
+                </p>
+              </CardFooter>
+            </Card>
+          ))}
+          <div className="text-right text-lg font-bold text-gray-800">
+            Final Score: {score} / {questions.length}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
@@ -115,48 +159,17 @@ function App() {
             {getFilledSentence(question.question, selectedWords)}
           </p>
         </div>
-
         <div className="flex justify-between w-full">
           <Button onClick={handleReset} variant="default">
             Reset Sentence
           </Button>
-          <Button
-            onClick={
-              currentQuestionIndex === questions.length - 1
-                ? handleFinish
-                : handleNext
-            }
-            variant="default"
-          >
+          <Button onClick={handleNext} variant="default">
             {currentQuestionIndex === questions.length - 1
               ? "Finish"
               : "Next Question"}
           </Button>
         </div>
       </div>
-
-      {currentQuestionIndex >= questions.length && (
-        <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">Your Results</h2>
-          {answers.map((answer, index) => (
-            <div key={index} className="mb-4">
-              <div>
-                <strong>Question:</strong> {answer.question}
-              </div>
-              <div>
-                <strong>Your Answer:</strong> {answer.userAnswer}
-              </div>
-              <div>
-                <strong>Status:</strong>{" "}
-                {answer.isCorrect ? "Correct" : "Incorrect"}
-              </div>
-            </div>
-          ))}
-          <div className="mt-4 text-lg font-bold">
-            Your Score: {score} out of {questions.length}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
